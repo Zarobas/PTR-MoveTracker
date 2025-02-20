@@ -158,6 +158,9 @@ async function openMoveTracker() {
                 const actionDiv = document.getElementById(`action-${index}`);
                 actionDiv.style.display = "none";
 
+                // Hide dropdown after selection
+                dropdown.style.display = "none";
+
                 if (freq === "counter") {
                     document.getElementById(`decrease-${index}`).style.display = "inline";
                     document.getElementById(`increase-${index}`).style.display = "inline";

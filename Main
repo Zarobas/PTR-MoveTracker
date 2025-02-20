@@ -68,6 +68,40 @@ async function openMoveTracker() {
             console.log("Dialog rendered.");
             renderMoveList(html);
 
+            // Drag & Drop Handling
+            html.find("#drop-zone").on("dragover", (event) => {
+                event.preventDefault();
+            });
+
+            html.find("#drop-zone").on("drop", async (event) => {
+                event.preventDefault();
+
+                let data;
+                try {
+                    data = JSON.parse(event.originalEvent.dataTransfer.getData("text/plain"));
+                } catch (err) {
+                    console.error("Invalid drop data", err);
+                    return;
+                }
+
+                if (data.type === "Item") {
+                    let move = await fromUuid(data.uuid);
+                    if (!move) return;
+
+                    moves.push({
+                        id: move.id,
+                        name: move.name,
+                        img: move.img,
+                        pack: move.pack ?? "",
+                        freq: "none",
+                        uses: 0
+                    });
+
+                    console.log("Added move:", move.name);
+                    renderMoveList(html);
+                }
+            });
+
             window.increaseMove = (index) => {
                 moves[index].uses++;
                 document.getElementById(`move-count-${index}`).innerText = moves[index].uses;
@@ -76,8 +110,6 @@ async function openMoveTracker() {
             window.decreaseMove = (index) => {
                 if (moves[index].uses > 0) moves[index].uses--;
                 document.getElementById(`move-count-${index}`).innerText = moves[index].uses;
-
-                // Reset button colors when decreasing
                 resetUseExhButtons();
             };
 
@@ -118,9 +150,7 @@ async function openMoveTracker() {
                 }
             };
 
-            // Function to reset all EXH and USE buttons
             function resetUseExhButtons() {
-                // Loop through all moves and reset EXH and USE buttons
                 moves.forEach((_, idx) => {
                     document.getElementById(`exh-${idx}`).style.backgroundColor = "";
                     document.getElementById(`use-${idx}`).style.backgroundColor = "";

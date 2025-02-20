@@ -42,17 +42,18 @@ async function openMoveTracker() {
                     <a href="#" onclick="game.packs.get('${move.pack}').getDocument('${move.id}').then(move => move.sheet.render(true));">${move.name}</a>
                 </div>
                 <div id="action-${index}" class="action-buttons" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-                    <select id="freq-${index}" onchange="changeFreq(${index}, this)">
-                        <option value="none">Select Frequency</option>
-                        <option value="counter">Counter</option>
-                        <option value="exh">EXH</option>
-                        <option value="use">USE</option>
-                    </select>
-                    <button id="decrease-${index}" onclick="decreaseMove(${index})" style="width: 40px; height: 40px; display: none;">-</button>
-                    <span id="move-count-${index}" style="display: none; margin: 0 10px;">${move.uses}</span> 
-                    <button id="increase-${index}" onclick="increaseMove(${index})" style="width: 40px; height: 40px; display: none;">+</button>
-                    <button id="exh-${index}" onclick="markExh(${index})" style="width: 40px; height: 40px; display: none;">EXH</button>
-                    <button id="use-${index}" onclick="markUse(${index})" style="width: 40px; height: 40px; display: none;">USE</button>
+                    ${move.freq === "none" ? 
+                        `<select id="freq-${index}" onchange="changeFreq(${index}, this)">
+                            <option value="none" ${move.freq === "none" ? "selected" : ""}>Select Frequency</option>
+                            <option value="counter" ${move.freq === "counter" ? "selected" : ""}>Counter</option>
+                            <option value="exh" ${move.freq === "exh" ? "selected" : ""}>EXH</option>
+                            <option value="use" ${move.freq === "use" ? "selected" : ""}>USE</option>
+                        </select>` : ""}
+                    <button id="decrease-${index}" onclick="decreaseMove(${index})" style="width: 40px; height: 40px; ${move.freq === 'counter' ? 'display: inline;' : 'display: none;'}">-</button>
+                    <span id="move-count-${index}" style="display: ${move.freq === 'counter' ? 'inline' : 'none'}; margin: 0 10px;">${move.uses}</span> 
+                    <button id="increase-${index}" onclick="increaseMove(${index})" style="width: 40px; height: 40px; ${move.freq === 'counter' ? 'display: inline;' : 'display: none;'}">+</button>
+                    <button id="exh-${index}" onclick="markExh(${index})" style="width: 40px; height: 40px; ${move.freq === 'exh' ? 'display: inline;' : 'display: none;'}">EXH</button>
+                    <button id="use-${index}" onclick="markUse(${index})" style="width: 40px; height: 40px; ${move.freq === 'use' ? 'display: inline;' : 'display: none;'}">USE</button>
                 </div>
             </div>`;
         }).join("");
@@ -86,9 +87,8 @@ async function openMoveTracker() {
                 }
             }
         },
-        // Set explicit width and height for the dialog box
         width: 400,
-        height: 600,  // Set height to 600px
+        height: 600,
         render: html => {
             console.log("Dialog rendered.");
             renderMoveList(html);
@@ -119,7 +119,8 @@ async function openMoveTracker() {
                     img: item.img,
                     id: item.id,
                     pack: item.pack || item.parent.uuid,
-                    uses: item.system.uses?.max || 1
+                    uses: item.system.uses?.max || 1,
+                    freq: "none"  // Default frequency when adding new moves
                 });
 
                 console.log("Added move:", item.name);
@@ -161,6 +162,10 @@ async function openMoveTracker() {
                 // Hide dropdown after selection
                 dropdown.style.display = "none";
 
+                // Save the selected frequency
+                moves[index].freq = freq;
+
+                // Display the corresponding action buttons
                 if (freq === "counter") {
                     document.getElementById(`decrease-${index}`).style.display = "inline";
                     document.getElementById(`increase-${index}`).style.display = "inline";
